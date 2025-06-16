@@ -38,8 +38,7 @@ This project wasn’t just about coding — it was about deeply **understanding 
 - Deposits, withdrawals, and balance checks via simple CLI
 - Persistent account storage in `accounts.json`
 - Ability to **switch between accounts** during runtime
-- Admins can access all data via JSON inspection
-
+  
 ### 🔧 Key Concepts Used:
 - **Encapsulation**: Protected attributes like `__balance` and `__account_number`
 - **Abstraction**: Users interact with public methods without touching internal logic
