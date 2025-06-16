@@ -1,6 +1,14 @@
 import random
 import string
 import re
+import rstr
+
+def generate_custom_code():
+    return rstr.xeger(r'BA[A-Z]{2}100\d{3}')
+
+# Example usage
+print(generate_custom_code())  # Output: BAHK100932
+
 
 class Bank_account:
     def __init__(self, account_number, account_holder, balance=0):
@@ -30,12 +38,12 @@ class Bank_account:
         print(f"Account number : {self.__account_number}")
 
 def generate_account_number():
-    while True:
-        letters = ''.join(random.choices(string.ascii_uppercase, k=4))
-        digits = ''.join(random.choices(string.digits, k=6))
-        acc_no = letters + digits
-        if re.fullmatch(r'[A-Z]{4}\d{6}', acc_no):
-            return acc_no
+    #while True:
+     #   letters = ''.join(random.choices(string.ascii_uppercase, k=4))
+      #  digits = ''.join(random.choices(string.digits, k=6))
+      #  acc_no = letters + digits
+       # if re.fullmatch(r'[A-Z]{4}\d{6}', acc_no):
+            return rstr.xeger(r'CH[A-Z]{2}3736\d{3}') #updated the section to generate a account number to unique bank style
 
 def create_account():
     print("Welcome to the Best bank")
