@@ -1,78 +1,127 @@
-import random
-import string
-import re
-import rstr
+import json
+import os
+import rstr  # You might need to run: pip install rstr
 
-def generate_custom_code():
-    return rstr.xeger(r'BA[A-Z]{2}100\d{3}')
+# --- File Setup ---
+ACCOUNTS_FILE = "accounts.json"
 
-# Example usage
-print(generate_custom_code())  # Output: BAHK100932
+# Ensure accounts.json exists
+if not os.path.exists(ACCOUNTS_FILE):
+    with open(ACCOUNTS_FILE, "w") as f:
+        json.dump([], f)
 
-
+# --- Bank_account Class (Original Style) ---
 class Bank_account:
     def __init__(self, account_number, account_holder, balance=0):
         self.__account_number = account_number
         self.__account_holder = account_holder
-        self.__balance = balance
+        self.__balance = float(balance)
 
     def deposit(self, amount):
+        amount = float(amount)
         if amount > 0:
             self.__balance += amount
-            print(f"Amount deposited is {amount} \n Updated balance is {self.__balance}")
+            print(f"Amount deposited is {amount}")
+            print(f"Updated balance is {self.__balance}")
         else:
-            print("Invalid amount entered")  # Removed unnecessary parentheses here
+            print("Invalid amount entered")
 
     def withdraw(self, amount):
-        if amount > 0 and amount < self.__balance:
+        amount = float(amount)
+        if 0 < amount <= self.__balance:
             self.__balance -= amount
-            print(f"Amount withdrawn is {amount} \n Updated balance is {self.__balance}")
+            print(f"Amount withdrawn is {amount}")
+            print(f"Updated balance is {self.__balance}")
         else:
-            print("Invalid amount entered")  # Removed unnecessary parentheses here
+            print("Invalid amount entered or insufficient funds")
 
     def get_balance(self):
         return self.__balance
+        
+    def get_account_number(self):
+        return self.__account_number
 
     def account_info(self):
         print(f"Account holder : {self.__account_holder}")
         print(f"Account number : {self.__account_number}")
+        print(f"Current balance: {self.__balance}")
 
-def generate_account_number():
-    #while True:
-     #   letters = ''.join(random.choices(string.ascii_uppercase, k=4))
-      #  digits = ''.join(random.choices(string.digits, k=6))
-      #  acc_no = letters + digits
-       # if re.fullmatch(r'[A-Z]{4}\d{6}', acc_no):
-            return rstr.xeger(r'CH[A-Z]{2}3736\d{3}') #updated the section to generate a account number to unique bank style
+    def to_dict(self):
+        return {
+            "account_number": self.__account_number,
+            "account_holder": self.__account_holder,
+            "balance": self.__balance
+        }
+
+# --- Data Functions (Original Style) ---
+def load_accounts_from_json():
+    """Reads and returns all accounts from the JSON file."""
+    try:
+        with open(ACCOUNTS_FILE, "r") as f:
+            content = f.read().strip()
+            return json.loads(content) if content else []
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
+
+def save_accounts_to_json(accounts):
+    """Saves a list of account dictionaries to the JSON file."""
+    with open(ACCOUNTS_FILE, "w") as f:
+        json.dump(accounts, f, indent=4)
+
+# --- Core Logic Functions ---
+def generate_unique_account_number():
+    """Generates a unique account number."""
+    existing_accounts = load_accounts_from_json()
+    existing_numbers = {acc["account_number"] for acc in existing_accounts}
+    while True:
+        # format: CHXX3736###
+        new_acc_num = rstr.xeger(r'CH[A-Z]{2}3736\d{3}')
+        if new_acc_num not in existing_numbers:
+            return new_acc_num
 
 def create_account():
-    print("Welcome to the Best bank")
-    name = input("Enter your name: ")  # Added colon and space for clarity
-    acc_no = generate_account_number()
-    initial_balance = int(input("Enter initial deposit amount: "))  # Added colon and space for clarity
+    """Guides the user through creating a new bank account."""
+    print("\n--- Create New Account ---")
+    name = input("Enter your name: ")
+    while True:
+        try:
+            initial_balance = float(input("Enter initial deposit amount: "))
+            if initial_balance >= 0:
+                break
+            else:
+                print("Initial deposit cannot be negative.")
+        except ValueError:
+            print("Please enter a valid number.")
 
+    acc_no = generate_unique_account_number()
     account = Bank_account(acc_no, name, initial_balance)
-    print("Account created successfully")
-    account.account_info()  # Removed print() because account_info() already prints
+    
+    # Add the new account to storage
+    all_accounts = load_accounts_from_json()
+    all_accounts.append(account.to_dict())
+    save_accounts_to_json(all_accounts)
 
+    print("\nAccount created successfully!")
+    account.account_info()
     return account
 
+# --- Main Program Execution ---
 print("Welcome to Mallya bank, how can we help you today")
+print("Our services\n---------------")
 
-print("Our services\n ---------------")
-
-account = None  # Added variable to store the user account (originally missing)
-
+# This variable will hold the account being actively used in this session.
+account = None
 service = 0
 
 while service != 6:
-    print("1. Open new Account")
-    print("2. Get account info")
+    print("\n1. Open New Account")
+    print("2. Get Account Info")
     print("3. Deposit")
-    print("4. Withdraw")  # Fixed typo from "Wtihdraw"
-    print("5. Get balance")
-    print("6. Exit")  # Added number for exit (originally just "Exit")
+    print("4. Withdraw")
+    print("5. Get Balance")
+    print("6. Exit")
     print("\n---------------")
+
     try:
         service = int(input("Choose a service: "))
     except ValueError:
@@ -80,27 +129,51 @@ while service != 6:
         continue
 
     if service == 1:
-        account = create_account()  # Store the account for later use
+        account = create_account()
     elif service == 2:
         if account:
-            account.account_info()  # Call on instance, not class
+            account.account_info()
         else:
             print("Please open an account first.")
     elif service == 3:
         if account:
-            amount = float(input("Enter amount to deposit: "))
-            account.deposit(amount)  # Called on instance, fixed method name (was Deposit)
+            try:
+                amount = float(input("Enter amount to deposit: "))
+                account.deposit(amount)
+                
+                # Save the updated account information
+                accounts = load_accounts_from_json()
+                for acc_dict in accounts:
+                    if acc_dict["account_number"] == account.get_account_number():
+                        acc_dict["balance"] = account.get_balance()
+                        break
+                save_accounts_to_json(accounts)
+
+            except ValueError:
+                print("Please enter a valid number.")
         else:
             print("Please open an account first.")
     elif service == 4:
         if account:
-            amount = float(input("Enter amount to withdraw: "))
-            account.withdraw(amount)  # Called on instance (was Bank_account.withdraw())
+            try:
+                amount = float(input("Enter amount to withdraw: "))
+                account.withdraw(amount)
+                
+                # Save the updated account information
+                accounts = load_accounts_from_json()
+                for acc_dict in accounts:
+                    if acc_dict["account_number"] == account.get_account_number():
+                        acc_dict["balance"] = account.get_balance()
+                        break
+                save_accounts_to_json(accounts)
+
+            except ValueError:
+                print("Please enter a valid number.")
         else:
             print("Please open an account first.")
     elif service == 5:
         if account:
-            print(f"Current balance: {account.get_balance()}")  # Called on instance (was Bank_account.get_balance())
+            print(f"Current balance: {account.get_balance()}")
         else:
             print("Please open an account first.")
     elif service == 6:

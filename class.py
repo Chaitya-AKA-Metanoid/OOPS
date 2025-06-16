@@ -50,7 +50,7 @@ class Knight(Character):
 
 # Create characters
 wizard = Wizard("Oz", 110, 10, 6)
-knight = Knight("Metanoid", 80, 15, 3)
+knight = Knight("Metanoid", 80, 20, 3)
 
 # Game loop
 while wizard.is_alive() and knight.is_alive():
