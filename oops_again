@@ -105,6 +105,22 @@ def create_account():
     account.account_info()
     return account
 
+def switch_account():
+    acc_num_to_find = input("Enter the account number to switch to: ")
+    all_accounts = load_accounts_from_json()
+    for acc_dict in all_accounts:
+        if acc_dict["account_number"] == acc_num_to_find:
+            found_account = Bank_account(
+            acc_dict["account_number"],
+            acc_dict["account_holder"],
+            acc_dict["balance"]
+        )
+            # Return the newly created object
+            return found_account
+    print("No account found")
+    return None
+
+
 # --- Main Program Execution ---
 print("Welcome to Mallya bank, how can we help you today")
 print("Our services\n---------------")
@@ -113,13 +129,14 @@ print("Our services\n---------------")
 account = None
 service = 0
 
-while service != 6:
+while service != 7:
     print("\n1. Open New Account")
     print("2. Get Account Info")
     print("3. Deposit")
     print("4. Withdraw")
     print("5. Get Balance")
-    print("6. Exit")
+    print("6. Switch Account")
+    print("7. Exit")
     print("\n---------------")
 
     try:
@@ -130,11 +147,13 @@ while service != 6:
 
     if service == 1:
         account = create_account()
+    
     elif service == 2:
         if account:
             account.account_info()
         else:
-            print("Please open an account first.")
+            print("Please either open an account first, if you have one then you may use switch account by pressing 6.")
+    
     elif service == 3:
         if account:
             try:
@@ -153,6 +172,7 @@ while service != 6:
                 print("Please enter a valid number.")
         else:
             print("Please open an account first.")
+    
     elif service == 4:
         if account:
             try:
@@ -171,12 +191,18 @@ while service != 6:
                 print("Please enter a valid number.")
         else:
             print("Please open an account first.")
+    
     elif service == 5:
         if account:
             print(f"Current balance: {account.get_balance()}")
         else:
             print("Please open an account first.")
+    
     elif service == 6:
+        switched = switch_account()
+        if switched:
+            account = switched
+    elif service == 7:
         print("Thank you for using our services, We hope to see you back soon")
         break
     else:
